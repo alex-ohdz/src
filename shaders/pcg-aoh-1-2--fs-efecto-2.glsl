@@ -15,8 +15,8 @@ uniform float u_mil_kd;
 uniform float u_mil_ks;
 uniform float u_mil_exp;
 
-// Nuevo parámetro uniforme para interpolación
-uniform float u_param_s; // entre 0 y 1
+// Parámetro de control
+uniform float u_param_s;
 
 // Parámetros varying desde el Vertex Shader
 in vec4 v_posic_ecc;
@@ -26,11 +26,6 @@ in vec2 v_coord_text;
 in vec3 v_vec_obs_ecc;
 
 layout(location = 0) out vec4 out_color_fragmento;
-
-// Función para calcular la luminancia de un color
-float luminance(vec3 color) {
-    return 0.2126 * color.r + 0.7152 * color.g + 0.0722 * color.b;
-}
 
 // Función para calcular el MIL
 vec3 EvalMIL(vec3 color_obj) {
@@ -59,18 +54,17 @@ void main() {
         color_obj = v_color;
     }
 
-    // Convertir a escala de grises
-    float l = luminance(color_obj.rgb);
-    vec3 color_gray = vec3(l, l, l);
-
-    // Interpolar entre el color original y la escala de grises
-    vec3 color_final = mix(color_obj.rgb, color_gray, u_param_s);
-
-    // Aplicar iluminación si está activada
+    // Aplicar iluminación antes de la discretización
     if (u_eval_mil) {
-        color_final = EvalMIL(color_final);
+        color_obj.rgb = EvalMIL(color_obj.rgb);
     }
 
+    // Calcular el número de niveles de discretización
+    float n = mix(6.0, 1.0, u_param_s); // n varía de 6 a 1 según s
+
+    // Aplicar discretización a cada componente de color
+    vec3 color_discretizado = floor(color_obj.rgb * n) / n;
+
     // Salida final
-    out_color_fragmento = vec4(color_final, color_obj.a);
+    out_color_fragmento = vec4(color_discretizado, color_obj.a);
 }
