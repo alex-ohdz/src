@@ -15,10 +15,10 @@ uniform float u_mil_kd;
 uniform float u_mil_ks;
 uniform float u_mil_exp;
 
-// Nuevo parámetro uniforme para interpolación
-uniform float u_param_s; // entre 0 y 1
+// Parámetro S
+uniform float u_param_s; // varia entre 0 y 1, por teclado.
 
-// Parámetros varying desde el Vertex Shader
+// Parámetros varying ( 'in' aquí, 'out' en el vertex shader)
 in vec4 v_posic_ecc;
 in vec4 v_color;
 in vec3 v_normal_ecc;
@@ -51,13 +51,12 @@ vec3 EvalMIL(vec3 color_obj) {
 }
 
 void main() {
-    // Obtener el color original del fragmento
+    // consultar color del objeto en el centro del pixel ('color_obj')
     vec4 color_obj;
-    if (u_eval_text) {
+    if (u_eval_text) 
         color_obj = texture(u_tex, v_coord_text);
-    } else {
+    else 
         color_obj = v_color;
-    }
 
     // Convertir a escala de grises
     float l = luminance(color_obj.rgb);
@@ -67,9 +66,8 @@ void main() {
     vec3 color_final = mix(color_obj.rgb, color_gray, u_param_s);
 
     // Aplicar iluminación si está activada
-    if (u_eval_mil) {
+    if (u_eval_mil)
         color_final = EvalMIL(color_final);
-    }
 
     // Salida final
     out_color_fragmento = vec4(color_final, color_obj.a);
